@@ -1,0 +1,292 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B70554F61193369D00ADA996 /* Brungart_device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B70554F11193369D00ADA996 /* Brungart_device.cpp */; };
+		B70554F71193369D00ADA996 /* Brungart_device.h in Headers */ = {isa = PBXBuildFile; fileRef = B70554F21193369D00ADA996 /* Brungart_device.h */; };
+		B70554F81193369D00ADA996 /* Response_object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B70554F31193369D00ADA996 /* Response_object.cpp */; };
+		B70554F91193369D00ADA996 /* Response_object.h in Headers */ = {isa = PBXBuildFile; fileRef = B70554F41193369D00ADA996 /* Response_object.h */; };
+		B70554FA1193369D00ADA996 /* create_Brungart_device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B70554F51193369D00ADA996 /* create_Brungart_device.cpp */; };
+		B74775B713D6119A00ABC03D /* Message.h in Headers */ = {isa = PBXBuildFile; fileRef = B74775B513D6119A00ABC03D /* Message.h */; };
+		B74775B813D6119A00ABC03D /* Message.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B74775B613D6119A00ABC03D /* Message.cpp */; };
+		B75C629015616FE600722EBC /* CRM_utterance_stats.h in Headers */ = {isa = PBXBuildFile; fileRef = B75C628E15616FE600722EBC /* CRM_utterance_stats.h */; };
+		B75C629115616FE600722EBC /* CRM_utterance_stats.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B75C628F15616FE600722EBC /* CRM_utterance_stats.cpp */; };
+		B78A10B2169B55B5003CD44A /* EPICLib.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B78A10B1169B55B5003CD44A /* EPICLib.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		B70554F11193369D00ADA996 /* Brungart_device.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Brungart_device.cpp; path = "../../../../Users/kieras/Documents/Programming/EPIC work/EPICModels/BrungartMS/BMS_model/BrungartV3_device/Source/Brungart_device.cpp"; sourceTree = DEVELOPER_DIR; };
+		B70554F21193369D00ADA996 /* Brungart_device.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Brungart_device.h; path = Source/Brungart_device.h; sourceTree = "<group>"; };
+		B70554F31193369D00ADA996 /* Response_object.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Response_object.cpp; path = Source/Response_object.cpp; sourceTree = "<group>"; };
+		B70554F41193369D00ADA996 /* Response_object.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Response_object.h; path = Source/Response_object.h; sourceTree = "<group>"; };
+		B70554F51193369D00ADA996 /* create_Brungart_device.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = create_Brungart_device.cpp; path = Source/create_Brungart_device.cpp; sourceTree = "<group>"; };
+		B74775B513D6119A00ABC03D /* Message.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Message.h; path = Source/Message.h; sourceTree = "<group>"; };
+		B74775B613D6119A00ABC03D /* Message.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Message.cpp; path = Source/Message.cpp; sourceTree = "<group>"; };
+		B75C628E15616FE600722EBC /* CRM_utterance_stats.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CRM_utterance_stats.h; path = Source/CRM_utterance_stats.h; sourceTree = "<group>"; };
+		B75C628F15616FE600722EBC /* CRM_utterance_stats.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CRM_utterance_stats.cpp; path = Source/CRM_utterance_stats.cpp; sourceTree = "<group>"; };
+		B78A10B1169B55B5003CD44A /* EPICLib.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = EPICLib.framework; path = ../../../../Users/kieras/Library/Frameworks/EPICLib.framework; sourceTree = DEVELOPER_DIR; };
+		D2AAC0630554660B00DB518D /* libBrungartV3_device.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libBrungartV3_device.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D289988505E68E00004EDB86 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B78A10B2169B55B5003CD44A /* EPICLib.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		08FB7794FE84155DC02AAC07 /* BrungartV1_device */ = {
+			isa = PBXGroup;
+			children = (
+				08FB7795FE84155DC02AAC07 /* Source */,
+				B7E220150E2400270086E23C /* External Frameworks */,
+				1AB674ADFE9D54B511CA2CBB /* Products */,
+			);
+			name = BrungartV1_device;
+			sourceTree = "<group>";
+		};
+		08FB7795FE84155DC02AAC07 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				B70554F11193369D00ADA996 /* Brungart_device.cpp */,
+				B70554F21193369D00ADA996 /* Brungart_device.h */,
+				B75C628E15616FE600722EBC /* CRM_utterance_stats.h */,
+				B75C628F15616FE600722EBC /* CRM_utterance_stats.cpp */,
+				B74775B513D6119A00ABC03D /* Message.h */,
+				B74775B613D6119A00ABC03D /* Message.cpp */,
+				B70554F31193369D00ADA996 /* Response_object.cpp */,
+				B70554F41193369D00ADA996 /* Response_object.h */,
+				B70554F51193369D00ADA996 /* create_Brungart_device.cpp */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		1AB674ADFE9D54B511CA2CBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D2AAC0630554660B00DB518D /* libBrungartV3_device.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B7E220150E2400270086E23C /* External Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				B78A10B1169B55B5003CD44A /* EPICLib.framework */,
+			);
+			name = "External Frameworks";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		D2AAC0600554660B00DB518D /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B70554F71193369D00ADA996 /* Brungart_device.h in Headers */,
+				B70554F91193369D00ADA996 /* Response_object.h in Headers */,
+				B74775B713D6119A00ABC03D /* Message.h in Headers */,
+				B75C629015616FE600722EBC /* CRM_utterance_stats.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		D2AAC0620554660B00DB518D /* BrungartV3_device */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1DEB914A08733D8E0010E9CD /* Build configuration list for PBXNativeTarget "BrungartV3_device" */;
+			buildPhases = (
+				D2AAC0600554660B00DB518D /* Headers */,
+				D2AAC0610554660B00DB518D /* Sources */,
+				D289988505E68E00004EDB86 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BrungartV3_device;
+			productName = BrungartV1_device;
+			productReference = D2AAC0630554660B00DB518D /* libBrungartV3_device.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		08FB7793FE84155DC02AAC07 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0510;
+			};
+			buildConfigurationList = 1DEB914E08733D8E0010E9CD /* Build configuration list for PBXProject "BrungartV3_device" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
+			mainGroup = 08FB7794FE84155DC02AAC07 /* BrungartV1_device */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D2AAC0620554660B00DB518D /* BrungartV3_device */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D2AAC0610554660B00DB518D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B70554F61193369D00ADA996 /* Brungart_device.cpp in Sources */,
+				B70554F81193369D00ADA996 /* Response_object.cpp in Sources */,
+				B70554FA1193369D00ADA996 /* create_Brungart_device.cpp in Sources */,
+				B74775B813D6119A00ABC03D /* Message.cpp in Sources */,
+				B75C629115616FE600722EBC /* CRM_utterance_stats.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1DEB914B08733D8E0010E9CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				EXECUTABLE_PREFIX = lib;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../../../../../../Library/Frameworks\"",
+					"$(USER_LIBRARY_DIR)/Frameworks",
+				);
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/lib;
+				PRODUCT_NAME = BrungartV3_device;
+				SDKROOT = macosx;
+				ZERO_LINK = NO;
+			};
+			name = Debug;
+		};
+		1DEB914C08733D8E0010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				EXECUTABLE_PREFIX = lib;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../../../../../../Library/Frameworks\"",
+					"$(USER_LIBRARY_DIR)/Frameworks",
+				);
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/lib;
+				PRODUCT_NAME = BrungartV3_device;
+				SDKROOT = macosx;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		1DEB914F08733D8E0010E9CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_CW_ASM_SYNTAX = NO;
+				GCC_C_LANGUAGE_STANDARD = ansi;
+				GCC_ENABLE_ASM_KEYWORD = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = NO;
+				GCC_ENABLE_PASCAL_STRINGS = NO;
+				GCC_FAST_OBJC_DISPATCH = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.cpp;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				GCC_WARN_ABOUT_INVALID_OFFSETOF_MACRO = NO;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_ALLOW_INCOMPLETE_PROTOCOL = NO;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_PEDANTIC = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACH_O_TYPE = mh_dylib;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		1DEB915008733D8E0010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_CW_ASM_SYNTAX = NO;
+				GCC_C_LANGUAGE_STANDARD = ansi;
+				GCC_ENABLE_ASM_KEYWORD = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = NO;
+				GCC_ENABLE_PASCAL_STRINGS = NO;
+				GCC_FAST_OBJC_DISPATCH = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.cpp;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				GCC_WARN_ABOUT_INVALID_OFFSETOF_MACRO = NO;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_ALLOW_INCOMPLETE_PROTOCOL = NO;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_PEDANTIC = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACH_O_TYPE = mh_dylib;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1DEB914A08733D8E0010E9CD /* Build configuration list for PBXNativeTarget "BrungartV3_device" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB914B08733D8E0010E9CD /* Debug */,
+				1DEB914C08733D8E0010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1DEB914E08733D8E0010E9CD /* Build configuration list for PBXProject "BrungartV3_device" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB914F08733D8E0010E9CD /* Debug */,
+				1DEB915008733D8E0010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 08FB7793FE84155DC02AAC07 /* Project object */;
+}

@@ -1,0 +1,1573 @@
+// changes from V3: use new refactored auditory system -  parameters have been relocated
+// changes from V2: changed listing order of parameters, added stream location weight parameter
+// Use Auditory perceptual processor Category encoding specifications
+// incorporates Greg's UWYH4 rule for using maskers
+// started from V6f
+// V6e version eliminates the apparently redundant inference rules
+// need to verify whether any of the other inference rules ever fire
+
+//"Require both" means that for the target to be chosen, both color and digit must be present, otherwise, maskers 
+// can be chosen if use-maskers is on.
+// This reflects idea that task might have been interpreted as if you are sure of target in some way, use the masker instead.
+// Started with MSVX6
+
+// problem with this version: too easy to lose track of masking options - rename is the solution.
+
+// added qualification like previous work to use known masker only if target callsign was not "observed"
+// replaced most of singleton rules that require absence of stream and pair tags
+
+// based on BrungartMSVX4.
+// Modified to use 6-beat segmentation in which "goto" is treated as one word
+// Experimental version
+// implements a use-what-you-heard strategy: if no target content, use
+// masker content
+
+// this version assumes that Ear_processor is assigning a possibly non-veridical stream ID to each word,
+// based on tracking the pitch and loudness of the streams.  This stream ID can then be used to associate
+// words to streams in the production rules. The stream ID attribute is always present, but is not necessarily
+// correct; but its guaranteed presence simplifies the production rules.
+
+// initially, do only two speaker rules
+
+
+// Has strategy switches for enabling/disabling stream inference, both at level of streams and words.
+
+// Watches for the number of speakers at the beginning of the run and sets a Strategy accordingly.
+
+// Uses the fact that the stream IDs are known from the stream objects to track which streams are not
+// yet tagged as masker versus target, to improve and simplify the inferences that can be made.
+
+// add in post-callsign stream ID inference:
+// if we notice a stream ID that is not tagged, but can infer what it should be,
+// go ahead and tag it. Do this after hearing each word, so that subsequent rules 
+// can make use of the inference - should simplify cross-inferences.
+
+// starting multispeaker versions BrungartMSV2
+// Goal is increase both-correct responses.
+// Change all rules that try to infer the target stream or its contents based on a masker to require both possible maskers.
+// If the target is known/inferred, then any thing different can be inferred to be a masker.
+// Also, make optimum in the sense of do not use a known masker. 
+
+// X version attempt to replace Time_stamp-sound name with ("Time_stamp" property) with
+// time stamp for word start ...
+
+// V9b version corrected wrong goal in (Tag_Masker_callsign_stream_Inferred_from_target_callsign_F
+// Based on Brungart2talkerV8cSubOptPair.prs and Brungart2talkerV8aOptPair.prs
+// and logic from Greg's joint_V14 and joint_v14_subopt1b
+// attempts to unify Greg's logic with production-sytem logic.
+// The problem is that we can't "infer" about a stream whose stream ID is not present ...
+
+// Adds "Different word" cross-slot inference case to inferred target/masker streams
+// from partial information from callsign words.
+// Makes distinction between having "observed" the target stream ID and having "inferred" it, 
+// using the fact that only two streams are possible.
+
+// Favors pairs as appropriate
+// reorganized so that color/digit content is not checked for until as late as possible; 
+// do all reasoning on the basis of stream membership only as much as possible.
+
+
+// Process words as they arrive instead of waiting until the end, assuming a word is always present 
+// even if no content and no stream.
+// Choose response at the end based on what was heard along the way.
+
+(Define Initial_memory_contents 
+(Goal Do BrungartTask)
+//(Strategy Avoid KnownMaskers)
+(Strategy Use KnownMaskers)
+(Strategy Infer Target_stream_from_masker_callsign)
+(Strategy Infer Masker_stream_from_target_callsign)
+(Strategy Infer Using_pairs)
+)
+
+(Define Named_location Fixation_point_location 0.0 0.0)
+
+(Define Parameters
+// visual search is not being modeled, and exact details are unknown, 
+// so make color, shape, and text widely available
+	(Eye Availability Color Zone 49 60.0)
+	(Eye Availability Shape Zone 49 60.0)
+	(Eye Availability Text Zone 49 60.0)
+	(Eye Availability Text Zone 49 60.0)
+	
+	// all Call signs included here, no distinction between target and masker here
+//	(Ear Category Callsign arrow baron charlie eagle hopper laker ringo tiger) 
+	// following start with upper case to map to EPIC's Standard Symbols
+//	(Ear Category Color Blue Green Red White)
+	// following digits read as strings, converted to Symbols
+//	(Ear Category Digit 1 2 3 4 5 6 7 8)
+
+	
+//bestfit V7aUseParams_p1445_best_TM_rsq_r2
+	(Auditory_perceptual_processor Effective_snr_loudness_weight Fixed 1.0)
+	(Auditory_perceptual_processor Effective_snr_pitch_weight Fixed 2.0)
+	(Auditory_perceptual_processor Effective_snr_location_weight Fixed 0.0)
+	(Auditory_perceptual_processor Pitch_difference_cap Fixed 4.0)
+	(Auditory_perceptual_processor Stream_loudness_weight Fixed 0.2)
+	(Auditory_perceptual_processor Stream_pitch_weight Fixed 0.8)
+	(Auditory_perceptual_processor Stream_location_weight Fixed 0.0)
+	(Auditory_perceptual_processor Stream_theta Fixed 0.1)
+	// detection for category mean, sd, lapse rate
+	(Auditory_perceptual_processor Content_detection Callsign -20.0 10.0 0.04)
+	(Auditory_perceptual_processor Content_detection Color -18.0 10.0 0.04)
+	(Auditory_perceptual_processor Content_detection Digit -26.0 10.0 0.04)
+	// Category of Nil means this is the default, applies if no category
+	(Auditory_perceptual_processor Content_detection Nil -20.0 10.0 0.04)
+
+//bestfit BC_rsq 3069
+//	(Auditory_perceptual_processor Effective_snr_loudness_weight Fixed 1.0)
+//	(Auditory_perceptual_processor Effective_snr_pitch_weight Fixed 2.0)
+//	(Auditory_perceptual_processor Effective_snr_location_weight Fixed 0.0)
+//	(Auditory_perceptual_processor Pitch_difference_cap Fixed 4.0)
+//	(Auditory_perceptual_processor Stream_loudness_weight Fixed 0.3)
+//	(Auditory_perceptual_processor Stream_pitch_weight Fixed 0.7)
+//	(Auditory_perceptual_processor Stream_location_weight Fixed 0.0)
+//	(Auditory_perceptual_processor Stream_theta Fixed 0.3)
+	
+	// detection for category mean, sd, lapse rate
+//	(Auditory_perceptual_processor Content_detection Callsign -22.0 10.0 0.06)
+//	(Auditory_perceptual_processor Content_detection Color -20.0 10.0 0.06)
+//	(Auditory_perceptual_processor Content_detection Digit -22.0 10.0 0.06)
+	// Category of Nil means this is the default, applies if no category
+//	(Auditory_perceptual_processor Content_detection Nil -20.0 10.0 0.06)
+
+// smallest BC_aae 3069
+//	(Auditory_perceptual_processor Effective_snr_loudness_weight Fixed 1.0)
+//	(Auditory_perceptual_processor Effective_snr_pitch_weight Fixed 2.0)
+//	(Auditory_perceptual_processor Effective_snr_location_weight Fixed 0.0)
+//	(Auditory_perceptual_processor Pitch_difference_cap Fixed 4.0)
+//	(Auditory_perceptual_processor Stream_loudness_weight Fixed 0.2)
+//	(Auditory_perceptual_processor Stream_pitch_weight Fixed 0.8)
+//	(Auditory_perceptual_processor Stream_location_weight Fixed 0.0)
+//	(Auditory_perceptual_processor Stream_theta Fixed 0.0)
+	
+	// detection for category mean, sd, lapse rate
+//	(Auditory_perceptual_processor Content_detection Callsign -16.0 8.0 0.05)
+//	(Auditory_perceptual_processor Content_detection Color -20.0 8.0 0.05)
+//	(Auditory_perceptual_processor Content_detection Digit -22.0 8.0 0.05)
+	// Category of Nil means this is the default, applies if no category
+//	(Auditory_perceptual_processor Content_detection Nil -16.0 8.0 0.05)
+
+// specify detection categories
+	(Auditory_perceptual_processor Detection_category Callsign arrow baron charlie eagle hopper laker ringo tiger)
+	(Auditory_perceptual_processor Detection_category Color Blue Green Red White)
+	(Auditory_perceptual_processor Detection_category Digit 1 2 3 4 5 6 7 8)
+
+// specify word content recodings
+	(Auditory_perceptual_processor Recoding_category Target_callsign baron)
+	(Auditory_perceptual_processor Recoding_category Masker_callsign arrow charlie eagle hopper laker ringo tiger)
+	// following start with upper case to map to EPIC's Standard Symbols
+	(Auditory_perceptual_processor Recoding_category Color Blue Green Red White)
+	// following digits read as strings, converted to Symbols
+	(Auditory_perceptual_processor Recoding_category Digit 1 2 3 4 5 6 7 8)
+
+
+) // end of parameter block
+
+(Top_mfg
+If
+(
+	(Goal Do BrungartTask)
+	(Not (Step ??? ???))
+ )
+Then
+(
+	(Send_to_motor Ocular Perform Move Fixation_point_location)
+	(Add (Step Waitfor N_speakers))
+ )
+)
+
+
+(Top_waitfor_n_speakers_two
+If
+(
+	(Goal Do BrungartTask)
+	(Step Waitfor N_speakers)
+	(Visual ?object Status Visible)
+	(Visual ?object Color White)
+	(Visual ?object Text 2)
+)
+Then
+(
+	(Add (Strategy Two Speakers))
+	(Delete (Step Waitfor N_speakers))
+	(Add (Step Start Trial))
+))
+
+(Top_waitfor_n_speakers_three
+If
+(
+	(Goal Do BrungartTask)
+	(Step Waitfor N_speakers)
+	(Visual ?object Status Visible)
+	(Visual ?object Color White)
+	(Visual ?object Text 3)
+)
+Then
+(
+	(Add (Strategy Three Speakers))
+	(Delete (Step Waitfor N_speakers))
+	(Add (Step Start Trial))
+))
+
+(Top_waitfor_n_speakers_four
+If
+(
+	(Goal Do BrungartTask)
+	(Step Waitfor N_speakers)
+	(Visual ?object Status Visible)
+	(Visual ?object Color White)
+	(Visual ?object Text 4)
+)
+Then
+(
+	(Add (Strategy Four Speakers))
+	(Delete (Step Waitfor N_speakers))
+	(Add (Step Start Trial))
+))
+
+(Top_trial_start
+If
+(
+	(Goal Do BrungartTask)
+	(Step Start Trial)
+)
+Then
+(
+	(Send_to_motor Ocular Perform Move Fixation_point_location)
+	(Add (Goal ListenTo Messages))
+	(Delete (Step Start Trial))
+	(Add (Step Waitfor ListenDone))
+))
+
+(Top_listen_done
+If
+(
+	(Goal Do BrungartTask)
+	(Step Waitfor ListenDone)
+	(Not (Goal ListenTo Messages))
+)
+Then
+(
+	(Add (Goal Choose Response))
+	(Delete (Step Waitfor ListenDone))
+	(Add (Step Waitfor ChooseDone))
+))
+
+(Top_choose_done
+If
+(
+	(Goal Do BrungartTask)
+	(Step Waitfor ChooseDone)
+	(Not (Goal Choose Response))
+)
+Then
+(
+	(Add (Goal Make Response))		// cleans up all tags
+	(Delete (Step Waitfor ChooseDone))
+	(Add (Step Waitfor ResponseDone))
+))
+
+// wait for the response to be made
+(Top_response_done
+If
+(
+	(Goal Do BrungartTask)
+	(Step Waitfor ResponseDone)
+	(Not (Goal Make Response))
+)
+Then
+(
+	(Delete (Step Waitfor ResponseDone))
+	(Add (Step Start Trial))
+))
+
+// listen to the messages, anticipating each word "slot" and 
+// adding Tags to classify each word as a slot holder and its
+// category and make inferences along the way
+// Word strings are "ready <callsign> go to <color> <digit> now"
+// wait for each one of word objects to appear
+
+// Callsign words, color words, and digit words, are known by their
+// position, independently of whether their streamID or content is known.
+
+(MFG_listen_to_messages
+If
+(
+	(Goal ListenTo Messages)
+	(Not (Step ListenToMessages ??? ???))
+)
+Then
+(
+	(Add (Step ListenToMessages Waitfor Ready))
+))
+
+(Listen_for_ready
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages Waitfor Ready)
+	(Auditory ?word Status Audible)
+)
+Then
+(
+	(Add (Tag ?word last_word))
+	(Delete (Step ListenToMessages Waitfor Ready))
+	(Add (Step ListenToMessages Waitfor Callsign))
+))
+
+// note that "ready" will be assigned streamIDs by Ear_processor, but we can't do anything
+// useful with it yet ...
+
+
+// possibilities, given that Ear_processor always supplies a stream ID for each word
+// heard						infer
+// target callsign content		stream for that word is target stream, other stream is masker
+// masker callsign content		stream for that word is masker stream, other stream is target
+// neither						neither stream is tagged as masker or target
+
+
+// This rule fires for multiple combinations of ?word and ?last_word 
+// across streams
+
+(Listen_for_callsign_word
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages Waitfor Callsign)
+	(Auditory ?word Status Audible)
+	(Tag ?last_word last_word)
+	(Auditory ?last_word Time_stamp ?t1)
+	(Auditory ?word Time_stamp ?t2)
+	(Different ?word ?last_word)
+	(Greater_than ?t2 ?t1)
+)
+Then
+(
+	(Delete (Tag ?last_word last_word))
+	(Add (Tag ?word last_word))
+	(Add (Tag ?word Callsign_word))
+
+// subthread is triggered by appearance of Category items for callsigns; no need to explicitly enable
+	(Delete (Step ListenToMessages Waitfor Callsign))
+	(Add (Step ListenToMessages Waitfor Go))
+//	(Add (Step ListenToMessages Compare WordAttributes))
+))
+
+
+
+// These rules are in an independent thread, firing while the rest of the message goes on.
+// The Category is only present if the Content was available.
+// Assumes all rules will fire in a single step if a category appears
+
+(Tag_target_callsign
+If
+(
+	(Goal ListenTo Messages)
+	(Auditory ?tword Status Audible)(Auditory ?tword Stream ?tstream)
+	(Tag ?tword Callsign_word)(Auditory ?tword Category Target_callsign)
+	(Not (Tag ?tword Target_callsign_word))
+	(Not (Tag ?tstream Target_stream))
+)
+Then
+(
+	(Add (Tag ?tword Target_callsign_word))
+	(Add (Tag ?tstream Target_stream))
+	(Add (Tag ?tstream Target_stream_observed))	// as opposed to inferred
+))
+
+// Assuming that this rule, if it fires, fires at same time as target_callsign rule does
+(Tag_masker_callsign
+If
+(
+	(Goal ListenTo Messages)
+	(Auditory ?mword Status Audible)(Auditory ?mword Stream ?mstream)
+	(Tag ?mword Callsign_word)(Auditory ?mword Category Masker_callsign)
+	(Not (Tag ?mword Masker_callsign_word))
+	(Not (Tag ?mstream Masker_stream))
+)
+Then
+(
+	(Add (Tag ?mword Masker_callsign_word))
+	(Add (Tag ?mstream Masker_stream))
+))
+
+// If we hear one masker callsign, we can tag the target stream 
+(Tag_Target_callsign_word_inferred_from_one_masker_callsign_obs
+If
+(
+	(Goal ListenTo Messages)
+	(Strategy Two Speakers)
+	(Strategy Infer Target_stream_from_masker_callsign)
+	(Tag ?mword Callsign_word)(Auditory ?mword Status Audible)(Auditory ?mword Stream ?mstream)
+	(Tag ?tword Callsign_word)(Auditory ?tword Status Audible)(Auditory ?tword Stream ?tstream)
+	(Auditory ?mword Category Masker_callsign)
+	(Not (Auditory ?tword Content ???))
+	(Different ?mword ?tword)
+	(Not (Tag ?tword Target_callsign_word))
+	(Not (Tag ?tstream Target_stream))
+)
+Then
+(
+	(Add (Tag ?tword Target_callsign_word))
+	(Add (Tag ?tstream Target_stream))
+	(Add (Tag ?tstream Target_stream_inferred))
+))
+
+// If we hear two masker callsigns, we can tag the target stream 
+// regardless of whether we have any stream information for the masker callsigns
+(Tag_Target_callsign_stream_Inferred_from_two_masker_callsign_obs
+If
+(
+	(Goal ListenTo Messages)
+	(Strategy Three Speakers)
+	(Strategy Infer Target_stream_from_masker_callsign)
+	(Auditory ?mword1 Category Masker_callsign)
+	(Auditory ?mword2 Category Masker_callsign)
+	(Auditory ?tword Stream ?tstream)(Not (Auditory ?tword Content ???))
+	(Tag ?mword1 Callsign_word)(Auditory ?mword1 Status Audible)
+	(Tag ?mword2 Callsign_word)(Auditory ?mword2 Status Audible)
+	(Tag ?tword Callsign_word)(Auditory ?tword Status Audible)
+	(Different ?mword1 ?mword2)
+	(Different ?mword1 ?tword)
+	(Different ?mword2 ?tword)
+	(Not (Tag ?tword Target_callsign_word))
+	(Not (Tag ?tstream Target_stream))
+)
+Then
+(
+	(Add (Tag ?tword Target_callsign_word))
+	(Add (Tag ?tstream Target_stream))
+	(Add (Tag ?tstream Target_stream_inferred))
+))
+
+// If we hear three masker callsigns, we can tag the target stream 
+// regardless of whether we have any stream information for the masker callsigns
+(Tag_Target_callsign_stream_Inferred_from_three_masker_callsign_obs
+If
+(
+	(Goal ListenTo Messages)
+	(Strategy Four Speakers)
+	(Strategy Infer Target_stream_from_masker_callsign)
+	(Auditory ?mword1 Category Masker_callsign)
+	(Auditory ?mword2 Category Masker_callsign)
+	(Auditory ?mword3 Category Masker_callsign)
+	(Auditory ?tword Stream ?tstream)(Not (Auditory ?tword Content ???))
+	(Tag ?mword1 Callsign_word)(Auditory ?mword1 Status Audible)
+	(Tag ?mword2 Callsign_word)(Auditory ?mword2 Status Audible)
+	(Tag ?mword3 Callsign_word)(Auditory ?mword3 Status Audible)
+	(Tag ?tword Callsign_word)(Auditory ?tword Status Audible)
+	(Different ?mword1 ?mword2)
+	(Different ?mword1 ?mword3)
+	(Different ?mword1 ?tword)
+	(Different ?mword2 ?mword3)
+	(Different ?mword2 ?tword)
+	(Different ?mword3 ?tword)
+	(Not (Tag ?tword Target_callsign_word))
+	(Not (Tag ?tstream Target_stream))
+)
+Then
+(
+	(Add (Tag ?tword Target_callsign_word))
+	(Add (Tag ?tstream Target_stream))
+	(Add (Tag ?tstream Target_stream_inferred))
+))
+
+
+// This rule is correct regardless of the number of speakers
+// If we hear the target callsign, we can label the masker stream even if no masker callsign content
+(Tag_Masker_callsign_stream_Inferred_from_target_callsign
+If
+(
+	(Goal ListenTo Messages)
+	(Strategy Infer Masker_stream_from_target_callsign)
+	(Tag ?tword Callsign_word)(Auditory ?tword Status Audible)
+	(Tag ?mword Callsign_word)(Auditory ?mword Status Audible)(Auditory ?mword Stream ?mstream)
+	(Auditory ?tword Category Target_callsign)
+	(Not (Auditory ?mword Content ???))
+	(Different ?tword ?mword)
+	(Not (Tag ?mword Masker_callsign_word))
+	(Not (Tag ?mstream Masker_stream))
+)
+Then
+(
+	(Add (Tag ?mword Masker_callsign_word))
+	(Add (Tag ?mstream Masker_stream))
+))
+
+// These rules infer the identify of untagged streams based only on 
+// the stream IDs that are present and marked - fire for one cycle only
+// does not depend on status of current word ...
+(Tag_stream_inferred_for_untagged_stream_control
+If
+(
+	(Goal ListenTo Messages)
+	(Step Infer UntaggedStream)
+)
+Then
+(
+	(Delete (Step Infer UntaggedStream))
+))
+
+(Listen_for_goto
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages Waitfor Go)
+	(Auditory ?word Status Audible)
+	(Tag ?last_word last_word)
+	(Auditory ?last_word Time_stamp ?t1)
+	(Auditory ?word Time_stamp ?t2)
+	(Different ?word ?last_word)
+	(Greater_than ?t2 ?t1)
+)
+Then
+(
+	(Delete (Tag ?last_word last_word))
+	(Add (Tag ?word last_word))
+//	(Add (Step Infer UntaggedStream))	// do stream inference
+	(Delete (Step ListenToMessages Waitfor Go))
+	(Add (Step ListenToMessages Waitfor Color))
+))
+
+(Listen_for_color_word
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages Waitfor Color)
+	(Auditory ?word Status Audible)
+	(Tag ?last_word last_word)
+	(Auditory ?last_word Time_stamp ?t1)
+	(Auditory ?word Time_stamp ?t2)
+	(Different ?word ?last_word)
+	(Greater_than ?t2 ?t1)
+)
+Then
+(
+	(Delete (Tag ?last_word last_word))
+	(Add (Tag ?word last_word))
+	(Add (Tag ?word Color_word))
+	(Delete (Step ListenToMessages Waitfor Color))
+	(Add (Step ListenToMessages Pause_before_tag Color))
+))
+
+(Pause_before_tag_color
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages Pause_before_tag Color)
+)
+Then
+(
+	(Delete (Step ListenToMessages Pause_before_tag Color))
+	(Add (Step ListenToMessages Tag Color))
+))
+
+// Make inferences based on what has been heard so far
+(Tag_from_color_words_control
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages Tag Color)
+)
+Then
+(
+	(Delete (Step ListenToMessages Tag Color))
+	(Add (Step ListenToMessages Waitfor Digit)) // let this overlap with digit processing
+))
+
+
+(Tag_color_control
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages Tag Color)
+)
+Then
+(
+	(Delete (Step ListenToMessages Tag Color))
+	(Add (Step ListenToMessages Infer Color))	
+))
+
+// a debugging rule
+(Check_if_no_stream_tagged
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages Tag Color)
+	(Not (Tag ??? Target_stream))
+	(Not (Tag ??? Masker_stream))
+)
+Then
+(
+	(Log No_stream_tags_present)
+))
+
+
+(Tag_color_word_is_target
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages Tag Color)
+	(Auditory ?word Status Audible)(Auditory ?word Stream ?stream)
+	(Tag ?word Color_word)
+	(Tag ?stream Target_stream)
+	(Not (Tag ?word Target_color_word))
+)
+Then
+(
+	(Add (Tag ?word Target_color_word))
+))
+
+(Tag_color_word_is_masker
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages Tag Color)
+	(Auditory ?word Status Audible)(Auditory ?word Stream ?stream)
+	(Tag ?word Color_word)
+	(Tag ?stream Masker_stream)
+	(Not (Tag ?word Masker_color_word))
+)
+Then
+(
+	(Add (Tag ?word Masker_color_word))
+))
+
+
+(Infer_color_control
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages Infer Color)
+)
+Then
+(
+	(Delete (Step ListenToMessages Infer Color))
+))
+
+
+(Listen_for_digit_word
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages Waitfor Digit)
+	(Auditory ?word Status Audible)
+	(Tag ?last_word last_word)
+	(Auditory ?last_word Time_stamp ?t1)
+	(Auditory ?word Time_stamp ?t2)
+	(Different ?word ?last_word)
+	(Greater_than ?t2 ?t1)
+)
+Then
+(
+	(Delete (Tag ?last_word last_word))
+	(Add (Tag ?word last_word))
+	(Add (Tag ?word Digit_word))
+//	(Add (Step Infer UntaggedStream))	// do stream inference
+	(Delete (Step ListenToMessages Waitfor Digit))
+//	(Add (Step ListenToMessages Compare WordAttributes))
+	(Add (Step ListenToMessages Pause_before_tag Digit))
+))
+
+// in case there were still inferences being done from color words ...
+(Pause_for_stream_inference_before_infer_from_digit
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages Pause_before_tag Digit)
+)
+Then
+(
+	(Delete (Step ListenToMessages Pause_before_tag Digit))
+	(Add (Step ListenToMessages Tag Digit))
+))
+
+
+
+// make inferences from the digit words - see above table - same rule logic
+(Tag_digit_control
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages Tag Digit)
+)
+Then
+(
+	(Delete (Step ListenToMessages Tag Digit))
+	(Add (Step ListenToMessages Infer Digit))	
+))
+
+(Tag_digit_word_is_target
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages Tag Digit)
+	(Auditory ?word Status Audible)(Auditory ?word Stream ?stream)
+	(Tag ?word Digit_word)
+	(Tag ?stream Target_stream)
+	(Not (Tag ?word Target_digit_word))
+)
+Then
+(
+	(Add (Tag ?word Target_digit_word))
+))
+
+(Tag_digit_word_is_masker
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages Tag Digit)
+	(Auditory ?word Status Audible)(Auditory ?word Stream ?stream)
+	(Tag ?word Digit_word)
+	(Tag ?stream Masker_stream)
+	(Not (Tag ?word Masker_digit_word))
+)
+Then
+(
+	(Add (Tag ?word Masker_digit_word))
+))
+
+(Infer_digit_control
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages Infer Digit)
+)
+Then
+(
+	(Delete (Step ListenToMessages Infer Digit))
+	(Add (Step ListenToMessages Mark Pairs))
+))
+
+// a debugging rule
+// I think both digits should be untagged only if there is no tagged streams
+(Check_both_digits_and_streams_untagged
+If
+(
+(THIS RULE IS DISABLED)
+	(Goal ListenTo Messages)
+	(Strategy Two Speakers)
+	(Step ListenToMessages Infer Digit)
+	(Not (Tag ??? Target_digit_word))
+	(Not (Tag ??? Masker_digit_word))
+	(Not (Tag ??? Target_stream))
+	(Not (Tag ??? Masker_stream))
+)
+Then
+(
+	(Log Both_streams_and_digits_are_untagged)	
+))
+
+
+// Step 5. Mark pairs from the same stream
+// if a color_word and a digit_word both have known StreamIDs which are the same, tag color_word, digit_word as a Same_stream_pair.
+
+(Mark_same_stream_pairs_control
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages Mark Pairs)
+)
+Then
+(
+	(Delete (Step ListenToMessages Mark Pairs))
+	(Add (Step ListenToMessages TagFrom Content))
+))
+
+(Mark_same_stream_pairs
+If
+(
+	(Goal ListenTo Messages)
+	(Strategy Infer Using_pairs)
+	(Step ListenToMessages Mark Pairs)
+	(Auditory ?color_word Status Audible)(Auditory ?color_word Stream ?stream)
+	(Tag ?color_word Color_word)
+	(Auditory ?digit_word Status Audible)(Auditory ?digit_word Stream ?stream)
+	(Tag ?digit_word Digit_word)
+	(Not (Tag ?color_word ?digit_word Same_stream_pair))
+)
+Then
+(
+	(Add (Tag ?color_word ?digit_word Same_stream_pair))
+))
+
+(Tag_all_contents_control
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages TagFrom Content)
+)
+Then
+(
+	(Delete (Step ListenToMessages TagFrom Content))
+	(Add (Step ListenToMessages Waitfor Now))
+))
+
+(Color_word_has_content_debug
+If
+(
+(THIS RULE IS DISABLED)
+	(Goal ListenTo Messages)
+	(Step ListenToMessages TagFrom Content)
+	(Tag ?word Color_word)
+	(Auditory ?word Content ???)
+)
+Then
+(
+	(Log Color_word_has_content_debug)
+))
+
+(Tag_content_color_T
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages TagFrom Content)
+	(Tag ?word Target_color_word)
+	(Auditory ?word Content ?color)
+	(Not (Tag ?color TargetColorContent))
+)
+Then
+(
+	(Add (Tag ?color TargetColorContent))
+))
+
+(Tag_content_color_M
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages TagFrom Content)
+	(Tag ?word Masker_color_word)
+	(Auditory ?word Content ?color)
+	(Not (Tag ?color MaskerColorContent))
+)
+Then
+(
+	(Add (Tag ?color MaskerColorContent))
+))
+
+(Tag_content_digit_T
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages TagFrom Content)
+	(Tag ?word Target_digit_word)
+	(Auditory ?word Content ?digit)
+	(Not (Tag ?digit TargetDigitContent))
+)
+Then
+(
+	(Add (Tag ?digit TargetDigitContent))
+))
+
+(Tag_content_digit_M
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages TagFrom Content)
+	(Tag ?word Masker_digit_word)
+	(Auditory ?word Content ?digit)
+	(Not (Tag ?digit MaskerDigitContent))
+)
+Then
+(
+	(Add (Tag ?digit MaskerDigitContent))
+))
+
+(Tag_content_pair
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages TagFrom Content)
+	(Tag ?color_word ?digit_word Same_stream_pair)
+	(Auditory ?color_word Content ?color)
+	(Auditory ?digit_word Content ?digit)
+	(Not (Tag ?color ?digit Same_stream_pair_content))
+)
+Then
+(
+	(Add (Tag ?color ?digit Same_stream_pair_content))
+))
+
+// waiting for the last word in the messages
+(Listen_for_now
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages Waitfor Now)
+	(Auditory ?word Status Audible)
+	(Tag ?last_word last_word)
+	(Auditory ?last_word Time_stamp ?t1)
+	(Auditory ?word Time_stamp ?t2)
+	(Different ?word ?last_word)
+	(Greater_than ?t2 ?t1)
+)
+Then
+(
+	(Delete (Tag ?last_word last_word))
+	(Delete (Step ListenToMessages Waitfor Now))
+	(Add (Step ListenToMessages ReturnWith GoalAccomplished))
+))
+
+(Listen_to_messages_RGA
+If
+(
+	(Goal ListenTo Messages)
+	(Step ListenToMessages ReturnWith GoalAccomplished)
+)
+Then
+(
+	(Delete (Goal ListenTo Messages))
+	(Delete (Step ListenToMessages ReturnWith GoalAccomplished))
+))
+
+
+// if word selected to use and content available, tag content as use_color
+// if word to be avoided and content available, tag content as avoid_color
+(MFG_choose_response
+If
+(
+	(Goal Choose Response)
+	(Not (Step ChooseResponse ??? ???))
+)
+Then
+(
+	(Add (Step ChooseResponse Use KnownStreams))
+))
+
+
+(Choose_use_known_streams_control
+If
+(
+	(Goal Choose Response)
+	(Step ChooseResponse Use KnownStreams)
+)
+Then
+(
+	(Delete (Step ChooseResponse Use KnownStreams))
+	(Add (Step ChooseResponse Use Pairs))
+))
+
+// fire if we have tagged a target stream but not a target color word
+(Choose_debug_target_stream_tagged_but_not_target_color_word
+If
+(
+	(Goal Choose Response)
+	(Step ChooseResponse Use KnownStreams)
+	(Tag ??? Target_stream)
+	(Not (Tag ??? Target_color_word))
+)
+Then
+(
+	(Log Choose_debug_target_stream_tagged_but_not_target_color_word)
+))
+
+(Choose_debug_target_stream_tagged_but_not_target_digit_word
+If
+(
+	(Goal Choose Response)
+	(Step ChooseResponse Use KnownStreams)
+	(Tag ??? Target_stream)
+	(Not (Tag ??? Target_digit_word))
+)
+Then
+(
+	(Log Choose_debug_target_stream_tagged_but_not_target_digit_word)
+))
+
+(Choose_debug2
+If
+(
+(THIS RULE IS DISABLED)
+(Goal Choose Response)
+	(Step ChooseResponse Use KnownStreams)
+	(Tag ??? use_color)
+)
+Then
+(
+	(Log use_color_present)
+))
+
+(Choose_debug3_target_stream_not_observed
+If
+(
+(THIS RULE IS DISABLED)
+	(Goal Choose Response)
+	(Step ChooseResponse Use KnownStreams)
+	(Not (Tag ??? Target_stream_observed))
+)
+Then
+(
+	(Log Choose_debug3_target_stream_not_observed)
+))
+
+// if target stream observed, use target content if present
+(Choose_use_obs_target_color_content
+If
+(
+	(Goal Choose Response)
+	(Step ChooseResponse Use KnownStreams)
+	(Tag ??? Target_stream_observed)
+	(Tag ?color TargetColorContent)
+	(Not (Tag ??? use_color))
+)
+Then
+(
+	(Add (Tag ?color use_color))
+))
+
+// if target stream observed, but no target content, just drop to next stage
+(Choose_obs_no_target_color_content
+If
+(
+(THIS RULE IS DISABLED)
+	(Goal Choose Response)
+	(Step ChooseResponse Use KnownStreams)
+	(Tag ??? Target_stream_observed)
+	(Not (Tag ??? TargetColorContent))
+)
+Then
+(
+	(Log Choose_obs_no_target_color_content)
+))
+
+// if target stream inferred, use target content if present
+(Choose_use_inf_target_color_content
+If
+(
+	(Goal Choose Response)
+	(Step ChooseResponse Use KnownStreams)
+	(Tag ??? Target_stream_inferred)	// if inferred, use target content if present
+	(Tag ?color TargetColorContent)
+	(Not (Tag ??? use_color))
+)
+Then
+(
+	(Add (Tag ?color use_color))
+))
+
+// if target stream inferred, and no target content, but masker content, use it
+(Choose_use_inf_masker_color_content
+If
+(
+	(Goal Choose Response)
+	(Step ChooseResponse Use KnownStreams)
+	(Strategy Use KnownMaskers)
+	(Tag ?tstream Target_stream_inferred)	// identity of target stream was inferred
+	(Not (Tag ??? TargetColorContent))		// don't have content known to be target
+	(Tag ?color MaskerColorContent)			// we do have content known to be masker
+	(Not (Tag ?color use_color))
+	(Randomly_choose_one)
+)
+Then
+(
+	(Add (Tag ?color use_color))
+//	(Log Choose_use_inf_masker_color_content)
+))
+
+(Choose_avoid_known_masker_color_content
+If
+(
+	(Goal Choose Response)
+	(Step ChooseResponse Use KnownStreams)
+	(Strategy Avoid KnownMaskers)
+	(Tag ?color MaskerColorContent)			// we do have content known to be masker
+	(Not (Tag ?color avoid_color))
+)
+Then
+(
+	(Add (Tag ?color avoid_color))
+//	(Log Choose_avoid_known_masker_color_content)
+))
+
+
+// if target stream observed, use target content if present
+(Choose_use_obs_target_digit_content
+If
+(
+	(Goal Choose Response)
+	(Step ChooseResponse Use KnownStreams)
+	(Tag ??? Target_stream_observed)
+	(Tag ?digit TargetDigitContent)
+	(Not (Tag ??? use_digit))
+)
+Then
+(
+	(Add (Tag ?digit use_digit))
+))
+
+// if target stream observed, but no target content, just drop to next stage
+(Choose_obs_no_target_digit_content
+If
+(
+(THIS RULE IS DISABLED)
+	(Goal Choose Response)
+	(Step ChooseResponse Use KnownStreams)
+	(Tag ??? Target_stream_observed)
+	(Not (Tag ??? TargetDigitContent))
+)
+Then
+(
+	(Log Choose_obs_no_target_digit_content)
+))
+
+
+// if target stream inferred, use target content if present
+(Choose_use_inf_target_digit_content
+If
+(
+	(Goal Choose Response)
+	(Step ChooseResponse Use KnownStreams)
+	(Tag ??? Target_stream_inferred)
+	(Tag ?digit TargetDigitContent)
+	(Not (Tag ??? use_digit))
+)
+Then
+(
+	(Add (Tag ?digit use_digit))
+))
+
+// if target stream inferred, and no target content, but masker content, use it
+(Choose_use_inf_masker_digit_content
+If
+(
+	(Goal Choose Response)
+	(Step ChooseResponse Use KnownStreams)
+	(Strategy Use KnownMaskers)
+	(Tag ?tstream Target_stream_inferred)	// identity of target stream was inferred
+	(Not (Tag ??? TargetDigitContent))		// don't have content known to be target
+	(Tag ?digit MaskerDigitContent)			// we do have content known to be masker
+	(Not (Tag ?digit use_digit))
+	(Randomly_choose_one)
+)
+Then
+(
+	(Add (Tag ?digit use_digit))
+//	(Log Choose_use_inf_masker_digit_content)
+))
+
+(Choose_avoid_known_masker_digit_content
+If
+(
+	(Goal Choose Response)
+	(Step ChooseResponse Use KnownStreams)
+	(Strategy Avoid KnownMaskers)
+	(Tag ?digit MaskerDigitContent)			// we do have content known to be masker
+	(Not (Tag ?digit avoid_digit))
+)
+Then
+(
+	(Add (Tag ?digit avoid_digit))
+//	(Log Choose_avoid_known_masker_digit_content)
+))
+
+
+(Choose_use_pairs_control
+If
+(
+	(Goal Choose Response)
+	(Step ChooseResponse Use Pairs)
+)
+Then
+(
+	(Delete (Step ChooseResponse Use Pairs))
+	(Add (Step ChooseResponse Use Singletons))
+))
+
+// This rule only fires if we are avoiding or using neither color nor digit
+(Choose_use_pair_content
+If
+(
+	(Goal Choose Response)
+	(Step ChooseResponse Use Pairs)
+	(Not (Tag ??? Target_stream_observed)) // don't fire if target stream is known
+	(Not (Tag ??? Target_stream_inferred))
+	(Tag ?color ?digit Same_stream_pair_content)		// we do have a content pair from the same stream
+	(Not (Tag ?color avoid_color))	// don't use if to be avoided!
+	(Not (Tag ?digit avoid_digit))
+	(Not (Tag ??? use_color))		// only fire if previously neither specified
+	(Not (Tag ??? use_digit))
+	(Randomly_choose_one)
+)
+Then
+(
+	(Add (Tag ?color use_color))
+	(Add (Tag ?digit use_digit))
+	(Log Choose_use_pair_content)
+))
+
+(Choose_use_singleton_control
+If
+(
+	(Goal Choose Response)
+	(Step ChooseResponse Use Singletons)
+)
+Then
+(
+	(Delete (Step ChooseResponse Use Singletons))
+	(Add (Step ChooseResponse ReturnWith GoalAccomplished))
+))
+
+// these rules should only fire for words about which no stream or pair information is available
+(Choose_use_color_singleton
+If
+(
+	(Goal Choose Response)
+	(Step ChooseResponse Use Singletons)
+	(Not (Tag ??? Target_stream_observed)) // don't fire if target stream is known
+	(Not (Tag ??? Target_stream_inferred))
+	(Tag ?color_word Color_word)
+	(Auditory ?color_word  Content ?color)
+	(Not (Tag ??? ??? Same_stream_pair_content)) // don't fire if we have any Same_stream_pair_content
+	(Not (Tag ?color avoid_color))	// don't use if to be avoided!  - will happen only if avoid_masker is strategy
+	(Not (Tag ??? use_color))		// only fire if previously not specified
+	(Randomly_choose_one)
+)
+Then
+(
+	(Add (Tag ?color use_color))
+	(Log Choose_use_color_singleton)
+))
+
+(Choose_use_digit_singleton
+If
+(
+	(Goal Choose Response)
+	(Step ChooseResponse Use Singletons)
+	(Not (Tag ??? Target_stream_observed)) // don't fire if target stream is known
+	(Not (Tag ??? Target_stream_inferred))
+	(Tag ?digit_word Digit_word)
+	(Auditory ?digit_word  Content ?digit)
+	(Not (Tag ??? ??? Same_stream_pair_content)) // don't fire if we have any Same_stream_pair_content
+	(Not (Tag ?digit avoid_digit))	// don't use if to be avoided!
+	(Not (Tag ??? use_digit))		// only fire if previously not specified
+	(Randomly_choose_one)
+)
+Then
+(
+	(Add (Tag ?digit use_digit))
+	(Log Choose_use_digit_singleton)
+))
+
+
+(Choose_RGA
+If
+(
+	(Goal Choose Response)
+	(Step ChooseResponse ReturnWith GoalAccomplished)
+)
+Then
+(
+	(Delete (Goal Choose Response))
+	(Delete (Step ChooseResponse ReturnWith GoalAccomplished))
+))
+
+
+
+// SUBMETHOD FOR MAKING A RESPONSE - Also cleans up all tags
+// Inputs:
+// Point to the following; if missing, pick at random:
+// (Tag ?color use_color)
+// (Tag ?digit use_digit)
+// If present, exclude these from a random pick:
+// (Tag ?notcolor avoid_color)
+// (Tag ?notdigit avoid_digit)
+
+(MFG_make_response
+If
+(
+	(Goal Make Response)
+	(Not (Step MakeResponse ??? ???))
+)
+Then
+(
+	(Add (Step MakeResponse Waitfor Response_signal))
+))
+
+// wait for some colored labelled square objects to appear
+(MakeResponse_waitfor_response_signal
+If
+(
+	(Goal Make Response)
+	(Step MakeResponse Waitfor Response_signal)
+	(Visual ?object Status Visible)
+	(Visual ?object Color ???)
+	(Visual ?object Shape Square)
+	(Visual ?object Text ???)
+	(Use_only_one)
+)
+Then
+(
+	(Delete (Step MakeResponse Waitfor Response_signal))
+	(Add (Step MakeResponse Nominate Candidates))
+))
+
+
+(MakeResponse_debug_no_color_chosen
+If
+(
+(THIS RULE IS DISABLED)
+	(Goal Make Response)
+	(Step MakeResponse Nominate Candidates)
+	(Not (Tag ??? use_color))
+)
+Then
+(
+	(Log no_use_color_present)
+))
+
+(MakeResponse_debug_no_digit_chosen
+If
+(
+(THIS RULE IS DISABLED)
+	(Goal Make Response)
+	(Step MakeResponse Nominate Candidates)
+	(Not (Tag ??? use_digit))
+)
+Then
+(
+	(Log no_use_digit_present)
+))
+
+
+
+// nominate objects to look at
+(MakeResponse_nominate_complete_match
+If
+(
+	(Goal Make Response)
+	(Step MakeResponse Nominate Candidates)
+	(Visual ?object Status Visible)
+	(Tag ?color use_color)
+	(Visual ?object Color ?color)
+	(Tag ?digit use_digit)
+	(Visual ?object Text ?digit)
+)
+Then
+(
+	(Add (Tag ?object color_digit_nomination))
+	(Delete (Step MakeResponse Nominate Candidates))
+	(Add (Step MakeResponse Choose Candidate))
+))
+
+(MakeResponse_nominate_color_only
+If
+(
+	(Goal Make Response)
+	(Step MakeResponse Nominate Candidates)
+	(Visual ?object Status Visible)
+	(Tag ?color use_color)
+	(Visual ?object Color ?color)
+	(Not (Tag ??? use_digit))  // no digit has been specified
+	(Visual ?object Text ?digit)
+	(Not (Tag ?digit avoid_digit))  // used to exclude as a guess
+	(Randomly_choose_one)
+)
+Then
+(
+	(Add (Tag ?object color_nomination))
+	(Delete (Step MakeResponse Nominate Candidates))
+	(Add (Step MakeResponse Choose Candidate))
+))
+
+(MakeResponse_nominate_digit_only
+If
+(
+	(Goal Make Response)
+	(Step MakeResponse Nominate Candidates)
+	(Visual ?object Status Visible)
+	(Visual ?object Text ?digit)
+	(Tag ?digit use_digit)
+	(Not (Tag ??? use_color))  // no color has been specified
+	(Visual ?object Color ?color)
+	(Not (Tag ?color avoid_color))  // used to exclude as a guess
+	(Randomly_choose_one)
+)
+Then
+(
+	(Add (Tag ?object digit_nomination))
+	(Delete (Step MakeResponse Nominate Candidates))
+	(Add (Step MakeResponse Choose Candidate))
+))
+
+(MakeResponse_nominate_random_object
+If
+(
+	(Goal Make Response)
+	(Step MakeResponse Nominate Candidates)
+	(Visual ?object Status Visible)
+	(Visual ?object Shape Square)  // nominate only one of the response objects
+	(Not (Tag ??? use_color))  // no color has been specified
+	(Visual ?object Color ?color)
+	(Not (Tag ?color avoid_color))  // used to exclude as a guess
+	(Not (Tag ??? use_digit))  // no digit has been specified
+	(Visual ?object Text ?digit)
+	(Not (Tag ?digit avoid_digit))  // used to exclude as a guess
+//	(Not (Tag ?object fixation_point))
+	(Randomly_choose_one)
+)
+Then
+(
+	(Add (Tag ?object random_nomination))
+	(Delete (Step MakeResponse Nominate Candidates))
+	(Add (Step MakeResponse Choose Candidate))
+))
+
+// CHOOSE FROM NOMINATIONS
+(MakeResponse_choose_candidate_color_digit
+If
+(	
+	(Goal Make Response)
+	(Step MakeResponse Choose Candidate)
+	(Tag ?candidate color_digit_nomination)
+	(Motor Ocular Processor Free)
+	(Motor Manual Modality Free)
+)
+Then
+(
+	(Send_to_motor Ocular Perform Move ?candidate)
+	(Send_to_motor Manual Perform Click_on ?candidate)
+	(Add (Tag ?candidate candidate))
+	(Delete (Step MakeResponse Choose Candidate))
+	(Add (Step MakeResponse Wait_for Feedback))
+))
+
+
+(MakeResponse_choose_candidate_digit
+If
+(	
+	(Goal Make Response)
+	(Step MakeResponse Choose Candidate)
+	(Tag ?candidate digit_nomination)
+	(Not (Tag ??? color_digit_nomination))
+	(Motor Ocular Processor Free)
+	(Motor Manual Modality Free)
+)
+Then
+(
+	(Send_to_motor Ocular Perform Move ?candidate)
+	(Send_to_motor Manual Perform Click_on ?candidate)
+	(Add (Tag ?candidate candidate))
+	(Delete (Step MakeResponse Choose Candidate))
+	(Add (Step MakeResponse Wait_for Feedback))
+))
+
+(MakeResponse_choose_candidate_color
+If
+(	
+	(Goal Make Response)
+	(Step MakeResponse Choose Candidate)
+	(Tag ?candidate color_nomination)
+	(Not (Tag ??? color_digit_nomination))
+	(Not (Tag ??? digit_nomination))
+	(Motor Ocular Processor Free)
+	(Motor Manual Modality Free)
+)
+Then
+(
+	(Send_to_motor Ocular Perform Move ?candidate)
+	(Send_to_motor Manual Perform Click_on ?candidate)
+	(Add (Tag ?candidate candidate))
+	(Delete (Step MakeResponse Choose Candidate))
+	(Add (Step MakeResponse Wait_for Feedback))
+))
+
+(MakeResponse_choose_random_candidate
+If
+(	
+	(Goal Make Response)
+	(Step MakeResponse Choose Candidate)
+	(Tag ?candidate random_nomination)
+	(Not (Tag ??? color_digit_nomination))
+	(Not (Tag ??? color_nomination))
+	(Not (Tag ??? digit_nomination))
+	(Motor Ocular Processor Free)
+	(Motor Manual Modality Free)
+)
+Then
+(
+	(Send_to_motor Ocular Perform Move ?candidate)
+	(Send_to_motor Manual Perform Click_on ?candidate)
+	(Add (Tag ?candidate candidate))
+	(Delete (Step MakeResponse Choose Candidate))
+	(Add (Step MakeResponse Wait_for Feedback))
+))
+
+// feedback is disappearance of candidate
+(MakeResponse_got_feedback
+If
+(
+	(Goal Make Response)
+	(Step MakeResponse Wait_for Feedback)
+	(Tag ?candidate candidate)
+	(Not (Visual ?candidate Status Visible))
+)
+Then
+(
+	(Delete (Step MakeResponse Wait_for Feedback))
+	(Add (Step MakeResponse Cleanup Memory))
+	(Add (Step MakeResponse RGA))
+))
+
+(MakeResponse_cleanup
+If
+(
+	(Goal Make Response)
+	(Step MakeResponse Cleanup Memory)
+	(Tag ?x ?y)
+)
+Then
+(
+	(Delete (Tag ?x ?y))
+	(Delete (Step MakeResponse Cleanup Memory))
+))
+
+(MakeResponse_cleanup2
+If
+(
+	(Goal Make Response)
+	(Step MakeResponse Cleanup Memory)
+	(Tag ?x ?y ?z)
+)
+Then
+(
+	(Delete (Tag ?x ?y ?z))
+	(Delete (Step MakeResponse Cleanup Memory))
+))
+
+(MakeResponse_cleanup3
+If
+(
+	(Goal Make Response)
+	(Step MakeResponse Cleanup Memory)
+	(Tag ?w ?x ?y ?z)
+)
+Then
+(
+	(Delete (Tag ?w ?x ?y ?z))
+	(Delete (Step MakeResponse Cleanup Memory))
+))
+
+(MakeResponse_RGA
+If
+(
+	(Goal Make Response)
+	(Step MakeResponse RGA)
+)
+Then
+(
+	(Delete (Goal Make Response))
+	(Delete (Step MakeResponse RGA))
+))
+
+
+
+
+
+
+
+
+
+
+
+
