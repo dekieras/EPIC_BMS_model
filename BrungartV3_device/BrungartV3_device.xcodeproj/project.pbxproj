@@ -29,6 +29,9 @@
 		B74775B613D6119A00ABC03D /* Message.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Message.cpp; path = Source/Message.cpp; sourceTree = "<group>"; };
 		B75C628E15616FE600722EBC /* CRM_utterance_stats.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CRM_utterance_stats.h; path = Source/CRM_utterance_stats.h; sourceTree = "<group>"; };
 		B75C628F15616FE600722EBC /* CRM_utterance_stats.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CRM_utterance_stats.cpp; path = Source/CRM_utterance_stats.cpp; sourceTree = "<group>"; };
+		B77AB6C41D2598D80035ED44 /* NeededForDeviceExecution */ = {isa = PBXFileReference; lastKnownFileType = folder; name = NeededForDeviceExecution; path = ../NeededForDeviceExecution; sourceTree = "<group>"; };
+		B77AB6C51D2598D80035ED44 /* LICENSE.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = LICENSE.txt; path = ../LICENSE.txt; sourceTree = "<group>"; };
+		B77AB6C61D2598EF0035ED44 /* BrungartMSV7aUseV4.prs */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = BrungartMSV7aUseV4.prs; path = ../BrungartMSV7aUseV4.prs; sourceTree = "<group>"; };
 		B78A10B1169B55B5003CD44A /* EPICLib.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = EPICLib.framework; path = ../../../../Users/kieras/Library/Frameworks/EPICLib.framework; sourceTree = DEVELOPER_DIR; };
 		D2AAC0630554660B00DB518D /* libBrungartV3_device.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libBrungartV3_device.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -48,6 +51,9 @@
 		08FB7794FE84155DC02AAC07 /* BrungartV1_device */ = {
 			isa = PBXGroup;
 			children = (
+				B77AB6C41D2598D80035ED44 /* NeededForDeviceExecution */,
+				B77AB6C51D2598D80035ED44 /* LICENSE.txt */,
+				B77AB6C61D2598EF0035ED44 /* BrungartMSV7aUseV4.prs */,
 				08FB7795FE84155DC02AAC07 /* Source */,
 				B7E220150E2400270086E23C /* External Frameworks */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
